@@ -34,6 +34,7 @@ for products in productinfo:
     review_item = products.find('div', {'class':'rev'})
     review = review_item.text[-3:15] if review_item else "No reviews"
     
+    
     brand_list.append(brand)
     productname_list.append(productname)
     price_list.append(price_tag)
@@ -68,4 +69,27 @@ with open('jumiaproducts.csv', 'w', newline = '') as jumiafile:
 
 df = pd.read_csv('jumiaproducts.csv', encoding='unicode escape')
 print(df.head(10))
+
+
+numratings = []
+for rating in rating_list:
+    if rating != 'No rating':
+        numratings.append(float(rating.split(' ')[0])) 
+    else:
+        numratings.append(0.0)
+print(numratings)
+
+numreviews =[]
+for review in review_list:
+    if review!= 'No reviews':
+        newreview= re.findall(r'\d+',review)
+        newreview=int(newreview[-1])
+        numreviews.append(newreview)
+    else:
+        numreviews.append(0.0)
+print(numreviews)
+
+
+popularity_score = numratings * numreviews
+print(popularity_score)
 
