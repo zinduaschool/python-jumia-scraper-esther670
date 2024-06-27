@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import pandas as pd
-
+mainurl = 'https://jumia.co.ke/'
 url = 'https://www.jumia.co.ke/flash-sales/'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
            "Accept-Language": "en-US, en;q=0.5"}
@@ -43,53 +43,23 @@ for products in productinfo:
     stock_list.append(stock)
     review_list.append(review)
 
-print(brand_list)
-print(productname_list)
-print(price_list)
-print(stock_list)
-print(discount_list)
-print(rating_list)
-print(review_list)
-   
+df = pd.DataFrame({
+        'Brand': brand_list,
+        'Product Name': productname_list,
+        'Price': price_list,
+        'Discount': discount_list,
+        'Rating': rating_list,
+        'Stock': stock_list,
+        'Review': review_list
+    })
 
-with open('jumiaproducts.csv', 'w', newline = '') as jumiafile:
-    writer = csv.writer(jumiafile)
-    writer.writerow([brand, productname, price_tag, discount, rating, review])
-    for i in range(len(brand_list)):
-        writer.writerow([
-            brand_list[i],
-            productname_list[i],
-            price_list[i],
-            discount_list[i],
-            rating_list[i],
-            stock_list[i],
-            review_list[i]
-            ])
-    print("Done! All products have been added to CSV file")
+df['Price'] = df['Price'].str.replace('KSh', '').str.replace(',', '').astype(float)
+df['Rating'] = df['Rating'].str.extract(r'(\d+\.\d+)').astype(float)
+df['Review'] = df['Review'].str.extract(r'(\d+)').astype(float)
 
-df = pd.read_csv('jumiaproducts.csv', encoding='unicode escape')
-print(df.head(10))
+df['Popularity Score'] = df['Rating'] * df['Review']
 
+df.sort_values(by='Popularity Score', ascending=False, inplace=True)
 
-numratings = []
-for rating in rating_list:
-    if rating != 'No rating':
-        numratings.append(float(rating.split(' ')[0])) 
-    else:
-        numratings.append(0.0)
-print(numratings)
-
-numreviews =[]
-for review in review_list:
-    if review!= 'No reviews':
-        newreview= re.findall(r'\d+',review)
-        newreview=int(newreview[-1])
-        numreviews.append(newreview)
-    else:
-        numreviews.append(0.0)
-print(numreviews)
-
-
-popularity_score = numratings * numreviews
-print(popularity_score)
-
+df.to_csv('jumiaproducts2.csv', index=False)
+print("Done! All products have been added to the CSV file.")
